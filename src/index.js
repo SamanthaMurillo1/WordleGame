@@ -1,9 +1,11 @@
 import { testDictionary, realDictionary } from './dictionary.js';
 
 // for testing purposes, make sure to use the test dictionary
-console.log('test dictionary:', testDictionary);
+// console.log('test dictionary:', testDictionary);
 
 const dictionary = realDictionary;
+
+//const dictionary = ["apple", "grape", "berry", "mango", "peach", "lemon", "melon", "cherry", "plum", "guava"];
 const state = {
   secret: dictionary[Math.floor(Math.random() * dictionary.length)],
   grid: Array(6)
@@ -12,19 +14,6 @@ const state = {
   currentRow: 0,
   currentCol: 0,
 };
-
-function drawGrid(container) {
-  const grid = document.createElement('div');
-  grid.className = 'grid';
-
-  for (let i = 0; i < 6; i++) {
-    for (let j = 0; j < 5; j++) {
-      drawBox(grid, i, j);
-    }
-  }
-
-  container.appendChild(grid);
-}
 
 function updateGrid() {
   for (let i = 0; i < state.grid.length; i++) {
@@ -44,6 +33,23 @@ function drawBox(container, row, col, letter = '') {
   container.appendChild(box);
   return box;
 }
+
+function drawGrid(container) {
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  for (let i = 0; i < 6; i++) {
+    for (let j = 0; j < 5; j++) {
+      drawBox(grid, i, j);
+    }
+  }
+
+  container.appendChild(grid);
+}
+
+
+
+
 
 function registerKeyboardEvents() {
   document.body.onkeydown = (e) => {
@@ -163,10 +169,17 @@ function removeLetter() {
 }
 
 function startup() {
+    
   const game = document.getElementById('game');
-  drawGrid(game);
+  drawGrid(game); //draw the grid
+  
 
   registerKeyboardEvents();
+
+//console.log('Secret word: lalalla', state.secret); // for testing purposes
 }
 
+
 startup();
+// /cs/home/sam50/wordlegame/wordle-speedrun/src/index.js
+// wordle-speedrun/src/index.js

@@ -43,7 +43,7 @@ body {
 }
 
 .box.wrong {
-  background: var(--wrong);
+  background: var(--wrong); /* color will turn yellow when its wrong */
 }
 
 .box.right {
