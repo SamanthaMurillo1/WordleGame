@@ -20,7 +20,12 @@ const state = {
   roomId: null,
   isGameActive: false,
   gameStartTime: null,
-  timerInterval: null
+  timerInterval: null,
+  isPaused: false,
+  chatOpen: false,
+  typingTimeout: null,
+  isTyping: false,
+  opponentTyping: false
 };
 
 function updateGrid() {
@@ -62,6 +67,11 @@ function drawGrid(container) {
 function registerKeyboardEvents() {
   document.body.onkeydown = (e) => {
     const key = e.key;
+    
+    // Don't allow game input if paused, chat is open, or opponent is typing
+    if (state.isPaused || state.chatOpen || state.opponentTyping) {
+      return;
+    }
     
     // Only allow input if game is active (or if in multiplayer and current player hasn't finished)
     if (state.gameMode === 'multiplayer' && !state.isGameActive) {
@@ -358,11 +368,18 @@ function startMultiplayerGame() {
   drawGrid(game);
   
   registerKeyboardEvents();
+  setupChatSystem();
   state.isGameActive = true;
   showGameArea();
   
+  // Show secret word for testing
+  displaySecretWord();
+  
   // Start the timer
   startGameTimer();
+  
+  // Add system message
+  addChatMessage('system', 'Game started! Good luck!');
   
   console.log('Multiplayer game started. Secret word:', state.secret);
 }
@@ -373,7 +390,7 @@ function startGameTimer() {
 }
 
 function updateTimer() {
-  if (!state.gameStartTime) return;
+  if (!state.gameStartTime || state.isPaused) return;
   
   const elapsed = Math.floor((Date.now() - state.gameStartTime) / 1000);
   const minutes = Math.floor(elapsed / 60);
@@ -382,6 +399,26 @@ function updateTimer() {
   const timerDisplay = document.getElementById('timer-display');
   if (timerDisplay) {
     timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+}
+
+function pauseGame() {
+  state.isPaused = true;
+  state.isGameActive = false;
+  
+  // Notify server about pause
+  if (state.roomId) {
+    socket.emit('gamePaused', { roomId: state.roomId });
+  }
+}
+
+function resumeGame() {
+  state.isPaused = false;
+  state.isGameActive = true;
+  
+  // Notify server about resume
+  if (state.roomId) {
+    socket.emit('gameResumed', { roomId: state.roomId });
   }
 }
 
@@ -459,16 +496,22 @@ socket.on('opponentMove', (data) => {
 });
 
 socket.on('playerFinished', (data) => {
-  // Show notification that opponent finished
-  const notification = document.getElementById('opponent-notification');
+  // Show notification with fade effect
   const status = data.won ? 'won' : 'finished';
-  notification.innerHTML = `
+  const content = `
     <div>🎯 ${data.playerName} ${status}!</div>
     <div>Attempts: ${data.attempts}</div>
     <div>Time: ${data.time}</div>
     ${data.won ? '<div>🎉 They found the word!</div>' : ''}
   `;
-  notification.classList.remove('hidden');
+  showNotificationWithFade(content);
+  
+  // Add chat message about player status
+  if (data.won) {
+    addChatMessage('system', `${data.playerName} won in ${data.attempts} attempts at ${data.time}!`);
+  } else {
+    addChatMessage('system', `${data.playerName} used all attempts and did not get the word`);
+  }
   
   // Continue letting current player play
   // Timer keeps running, game stays active
@@ -540,6 +583,208 @@ socket.on('playerDisconnected', () => {
 socket.on('gameError', (data) => {
   alert(data.message);
   showMultiplayerPage();
+});
+
+// Secret word display for testing
+function displaySecretWord() {
+  const display = document.getElementById('secret-word-display');
+  display.textContent = `Secret: ${state.secret.toUpperCase()}`;
+}
+
+// Chat system functions
+function setupChatSystem() {
+  const chatToggleBtn = document.getElementById('chat-toggle-btn');
+  const chatContainer = document.getElementById('chat-container');
+  const chatCloseBtn = document.getElementById('chat-close-btn');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+  
+  // Toggle chat on button click
+  chatToggleBtn.addEventListener('click', toggleChat);
+  
+  // Close chat
+  chatCloseBtn.addEventListener('click', closeChat);
+  
+  // Send message on button click
+  chatSend.addEventListener('click', sendChatMessage);
+  
+  // Send message on Enter key
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendChatMessage();
+    }
+  });
+  
+  // Handle typing indicator
+  chatInput.addEventListener('input', handleTyping);
+  chatInput.addEventListener('blur', stopTyping);
+}
+
+function toggleChat() {
+  const chatContainer = document.getElementById('chat-container');
+  const isHidden = chatContainer.classList.contains('hidden');
+  
+  if (isHidden) {
+    openChat();
+  } else {
+    closeChat();
+  }
+}
+
+function openChat() {
+  const chatContainer = document.getElementById('chat-container');
+  const gameArea = document.getElementById('multiplayer-game');
+  
+  chatContainer.classList.remove('hidden');
+  gameArea.classList.add('game-paused');
+  
+  state.chatOpen = true;
+  pauseGame();
+  
+  // Focus on input
+  document.getElementById('chat-input').focus();
+}
+
+function closeChat() {
+  const chatContainer = document.getElementById('chat-container');
+  const gameArea = document.getElementById('multiplayer-game');
+  
+  chatContainer.classList.add('hidden');
+  gameArea.classList.remove('game-paused');
+  
+  state.chatOpen = false;
+  stopTyping();
+  
+  if (!state.opponentTyping) {
+    resumeGame();
+  }
+}
+
+function handleTyping() {
+  if (!state.isTyping && state.roomId) {
+    state.isTyping = true;
+    socket.emit('startTyping', { roomId: state.roomId });
+  }
+  
+  // Clear existing timeout
+  if (state.typingTimeout) {
+    clearTimeout(state.typingTimeout);
+  }
+  
+  // Set new timeout to stop typing after 2 seconds of inactivity
+  state.typingTimeout = setTimeout(() => {
+    stopTyping();
+  }, 2000);
+}
+
+function stopTyping() {
+  if (state.isTyping && state.roomId) {
+    state.isTyping = false;
+    socket.emit('stopTyping', { roomId: state.roomId });
+  }
+  
+  if (state.typingTimeout) {
+    clearTimeout(state.typingTimeout);
+    state.typingTimeout = null;
+  }
+}
+
+function updateChatButton() {
+  const chatBtn = document.getElementById('chat-toggle-btn');
+  const chatText = chatBtn.querySelector('.chat-text');
+  
+  if (state.opponentTyping) {
+    chatBtn.classList.add('typing');
+    chatText.textContent = 'Player typing...';
+  } else {
+    chatBtn.classList.remove('typing');
+    chatText.textContent = 'Chat';
+  }
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  
+  if (message && state.roomId) {
+    socket.emit('chatMessage', {
+      roomId: state.roomId,
+      message: message
+    });
+    input.value = '';
+  }
+}
+
+function addChatMessage(type, content, username = null) {
+  const messagesContainer = document.getElementById('chat-messages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${type}`;
+  
+  if (type === 'system') {
+    messageDiv.textContent = `🔔 ${content}`;
+  } else if (type === 'player') {
+    messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+  }
+  
+  messagesContainer.appendChild(messageDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Notification with fade effect
+function showNotificationWithFade(content) {
+  const notification = document.getElementById('opponent-notification');
+  notification.innerHTML = content;
+  notification.classList.remove('hidden', 'fade-out');
+  
+  // Fade out after 4 seconds
+  setTimeout(() => {
+    notification.classList.add('fade-out');
+    setTimeout(() => {
+      notification.classList.add('hidden');
+    }, 500); // Wait for fade animation to complete
+  }, 4000);
+}
+
+// Socket handlers for chat
+socket.on('chatMessage', (data) => {
+  addChatMessage('player', data.message, data.username);
+});
+
+socket.on('playerStartedTyping', () => {
+  state.opponentTyping = true;
+  updateChatButton();
+  
+  // Pause game if not already paused by current player
+  if (!state.chatOpen) {
+    pauseGame();
+    document.getElementById('multiplayer-game').classList.add('game-paused');
+    
+    // Auto-open chat to show typing indicator
+    const chatContainer = document.getElementById('chat-container');
+    chatContainer.classList.remove('hidden');
+    
+    const typingIndicator = document.getElementById('typing-indicator');
+    typingIndicator.textContent = 'Player is typing...';
+    typingIndicator.classList.remove('hidden');
+  }
+});
+
+socket.on('playerStoppedTyping', () => {
+  state.opponentTyping = false;
+  updateChatButton();
+  
+  const typingIndicator = document.getElementById('typing-indicator');
+  typingIndicator.classList.add('hidden');
+  
+  // Resume game if current player doesn't have chat open
+  if (!state.chatOpen) {
+    resumeGame();
+    document.getElementById('multiplayer-game').classList.remove('game-paused');
+    
+    // Close auto-opened chat
+    const chatContainer = document.getElementById('chat-container');
+    chatContainer.classList.add('hidden');
+  }
 });
 
 startup();

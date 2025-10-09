@@ -70,7 +70,12 @@ io.on('connection', (socket) => {
             player2Grid: Array(6).fill().map(() => Array(5).fill('')),
             player1Finished: false,
             player2Finished: false,
-            winner: null
+            winner: null,
+            player1Name: 'Player 1',
+            player2Name: 'Player 2',
+            isPaused: false,
+            player1Typing: false,
+            player2Typing: false
         };
         
         socket.join(roomUniqueId);
@@ -204,6 +209,81 @@ io.on('connection', (socket) => {
     socket.on('continueGame', (data) => {
         const roomId = data.roomId;
         socket.to(roomId).emit('opponentContinuing');
+    });
+
+    // Handle chat messages
+    socket.on('chatMessage', (data) => {
+        const roomId = data.roomId;
+        const room = rooms[roomId];
+        
+        if (room) {
+            const isPlayer1 = room.player1 === socket.id;
+            const playerName = isPlayer1 ? room.player1Name : room.player2Name;
+            
+            // Broadcast message to both players
+            io.to(roomId).emit('chatMessage', {
+                message: data.message,
+                username: playerName
+            });
+        }
+    });
+
+    // Handle typing indicators
+    socket.on('startTyping', (data) => {
+        const roomId = data.roomId;
+        const room = rooms[roomId];
+        
+        if (room) {
+            const isPlayer1 = room.player1 === socket.id;
+            
+            if (isPlayer1) {
+                room.player1Typing = true;
+            } else {
+                room.player2Typing = true;
+            }
+            
+            // Notify the other player
+            socket.to(roomId).emit('playerStartedTyping');
+        }
+    });
+
+    socket.on('stopTyping', (data) => {
+        const roomId = data.roomId;
+        const room = rooms[roomId];
+        
+        if (room) {
+            const isPlayer1 = room.player1 === socket.id;
+            
+            if (isPlayer1) {
+                room.player1Typing = false;
+            } else {
+                room.player2Typing = false;
+            }
+            
+            // Notify the other player
+            socket.to(roomId).emit('playerStoppedTyping');
+        }
+    });
+
+    // Handle game pause/resume
+    socket.on('gamePaused', (data) => {
+        const roomId = data.roomId;
+        const room = rooms[roomId];
+        
+        if (room) {
+            room.isPaused = true;
+            socket.to(roomId).emit('gameWasPaused');
+        }
+    });
+
+    socket.on('gameResumed', (data) => {
+        const roomId = data.roomId;
+        const room = rooms[roomId];
+        
+        if (room && !room.player1Typing && !room.player2Typing) {
+            room.isPaused = false;
+            socket.to(roomId).emit('gameWasResumed');
+        }
     });
 });
 

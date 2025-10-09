@@ -87,6 +87,23 @@
         <h2 id="countdown-number">3</h2>
       </div>
       <div id="multiplayer-game-area" class="hidden">
+        <div id="secret-word-display"></div>
+        <button id="chat-toggle-btn" class="chat-toggle-button">
+          <span class="chat-icon">💬</span>
+          <span class="chat-text">Chat</span>
+        </button>
+        <div id="chat-container" class="hidden">
+          <div id="chat-header">
+            <span>Chat</span>
+            <button id="chat-close-btn">×</button>
+          </div>
+          <div id="chat-messages"></div>
+          <div id="typing-indicator" class="hidden"></div>
+          <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Type a message..." maxlength="100">
+            <button id="chat-send">Send</button>
+          </div>
+        </div>
         <div id="opponent-notification" class="hidden"></div>
         <div id="game-timer">Time: <span id="timer-display">0:00</span></div>
         <div id="multiplayer-game"></div>
