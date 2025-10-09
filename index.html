@@ -47,9 +47,57 @@
     <link rel="icon" type="image/png" href="./assets/favicon.png" />
   </head>
   <body>
-    <h1 class="title">Wordle <span class="title-word-clone">clone</span></h1>
-    <div id = "game">
+    <!-- Landing Page -->
+    <div id="landing-page">
+      <h1 class="title">Wordle <span class="title-word-clone">clone</span></h1>
+      <div class="button-container">
+        <button id="solo-btn" class="game-mode-btn">Solo Player</button>
+        <button id="multiplayer-btn" class="game-mode-btn">2 Players</button>
+      </div>
     </div>
+
+    <!-- Solo Game Page -->
+    <div id="solo-game-page" class="hidden">
+      <h1 class="title">Wordle <span class="title-word-clone">clone</span></h1>
+      <div id="game"></div>
+      <button id="back-to-landing" class="back-btn">Back to Menu</button>
+    </div>
+
+    <!-- Multiplayer Options Page -->
+    <div id="multiplayer-page" class="hidden">
+      <h1 class="title">Multiplayer <span class="title-word-clone">Mode</span></h1>
+      <div class="button-container">
+        <button id="create-game-btn" class="game-mode-btn">Create a Game</button>
+        <input type="text" id="game-code-input" placeholder="Enter game code..." class="game-input">
+        <button id="join-game-btn" class="game-mode-btn">Join Game</button>
+        <button id="back-from-multiplayer" class="back-btn">Back to Menu</button>
+      </div>
+    </div>
+
+    <!-- Multiplayer Game Page -->
+    <div id="multiplayer-game-page" class="hidden">
+      <h1 class="title">Multiplayer <span class="title-word-clone">Game</span></h1>
+      <div id="waiting-area" class="button-container">
+        <p id="waiting-text">Waiting for opponent...</p>
+        <p id="game-code-display"></p>
+        <button id="copy-code-btn" class="game-mode-btn" style="display: none;">Copy Game Code</button>
+      </div>
+      <div id="countdown-area" class="button-container hidden">
+        <p id="countdown-text">Game starting in...</p>
+        <h2 id="countdown-number">3</h2>
+      </div>
+      <div id="multiplayer-game-area" class="hidden">
+        <div id="opponent-notification" class="hidden"></div>
+        <div id="game-timer">Time: <span id="timer-display">0:00</span></div>
+        <div id="multiplayer-game"></div>
+        <div id="opponent-status">
+          <p>Opponent progress: <span id="opponent-row">0</span>/6</p>
+        </div>
+        <div id="game-result" class="hidden"></div>
+      </div>
+      <button id="back-from-multiplayer-game" class="back-btn">Leave Game</button>
+    </div>
+
     <hr />
     <p class="footer">
       Made for fun in ~30 minutes
@@ -94,6 +142,7 @@
         </a>
       </span>
     </p>
+    <script src="/socket.io/socket.io.js"></script>
     <script defer src="./src/index.js" type="module"></script>
   </body>
 </html>

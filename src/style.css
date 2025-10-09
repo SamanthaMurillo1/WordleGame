@@ -19,6 +19,170 @@ body {
   height: 72vh;
 }
 
+.hidden {
+  display: none !important;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 3rem;
+}
+
+.game-mode-btn {
+  padding: 15px 30px;
+  background: var(--empty);
+  color: white;
+  border: 2px solid var(--wrong);
+  border-radius: 10px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.game-mode-btn:hover {
+  background: var(--wrong);
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(181, 159, 59, 0.3);
+}
+
+.game-input {
+  padding: 12px 16px;
+  background: var(--default);
+  color: white;
+  border: 2px solid var(--empty);
+  border-radius: 8px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  min-width: 200px;
+  transition: border-color 0.2s ease;
+}
+
+.game-input:focus {
+  outline: none;
+  border-color: var(--wrong);
+}
+
+.game-input::placeholder {
+  color: #888;
+}
+
+.back-btn {
+  padding: 10px 20px;
+  background: var(--default);
+  color: white;
+  border: 2px solid var(--empty);
+  border-radius: 8px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 2rem;
+}
+
+.back-btn:hover {
+  background: var(--empty);
+  transform: scale(1.02);
+}
+
+#game-code-display {
+  color: var(--wrong);
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 1rem 0;
+  padding: 10px;
+  border: 2px solid var(--wrong);
+  border-radius: 8px;
+  background: rgba(181, 159, 59, 0.1);
+}
+
+#waiting-text {
+  color: white;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+#countdown-text {
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+#countdown-number {
+  color: var(--wrong);
+  font-size: 3rem;
+  text-align: center;
+  margin: 1rem 0;
+  background: rgba(181, 159, 59, 0.2);
+  padding: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--wrong);
+  display: inline-block;
+  min-width: 80px;
+}
+
+#game-timer {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 10px;
+  background: rgba(83, 141, 78, 0.2);
+  border: 2px solid var(--right);
+  border-radius: 8px;
+}
+
+#timer-display {
+  color: var(--right);
+  font-size: 1.8rem;
+}
+
+#game-result {
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-top: 1rem;
+  padding: 15px;
+  background: rgba(181, 159, 59, 0.2);
+  border: 2px solid var(--wrong);
+  border-radius: 8px;
+}
+
+#opponent-status {
+  color: white;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+}
+
+#opponent-notification {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(83, 141, 78, 0.9);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  border: 2px solid var(--right);
+  font-size: 1rem;
+  font-weight: bold;
+  max-width: 300px;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
 .grid {
   display: grid;
   grid-template-rows: repeat(6, auto);
