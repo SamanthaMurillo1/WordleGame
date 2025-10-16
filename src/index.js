@@ -286,6 +286,13 @@ function resetGameState() {
   state.currentCol = 0;
 }
 
+function resetGameStateMultiplayer() {
+  // Don't reset secret word in multiplayer - it comes from server
+  state.grid = Array(6).fill().map(() => Array(5).fill(''));
+  state.currentRow = 0;
+  state.currentCol = 0;
+}
+
 function setupNavigation() {
   // Landing page buttons
   document.getElementById('solo-btn').addEventListener('click', showSoloGamePage);
@@ -361,7 +368,7 @@ function copyGameCode() {
 }
 
 function startMultiplayerGame() {
-  resetGameState();
+  resetGameStateMultiplayer();
   
   const game = document.getElementById('multiplayer-game');
   game.innerHTML = '';
@@ -446,7 +453,7 @@ function formatGameResult(data) {
   
   if (isWinner) {
     if (isCurrentPlayer) {
-      return `🎉 You won! Completed in ${data.attempts || state.currentRow} attempts in ${data.time || getElapsedTime()}`;
+      return `🎉 You won! Completed in ${data.attempts -1 } attempts in ${data.time || getElapsedTime()}`;
     } else {
       return `Your opponent won! They completed it in ${data.attempts || 'unknown'} attempts in ${data.time || 'unknown time'}`;
     }
@@ -467,6 +474,7 @@ socket.on('newGame', (data) => {
 
 socket.on('playersConnected', (data) => {
   state.secret = data.secretWord;
+  state.roomId = data.roomId; // Set roomId for the joining player
   document.getElementById('waiting-text').textContent = 'Opponent joined! Game starting soon...';
   document.getElementById('copy-code-btn').style.display = 'none';
 });
@@ -488,7 +496,7 @@ socket.on('opponentMove', (data) => {
   
   for (let i = 0; i < opponentGrid.length; i++) {
     if (opponentGrid[i].some(cell => cell !== '')) {
-      opponentRow = i + 1;
+      opponentRow = i +1;
     }
   }
   
@@ -498,17 +506,11 @@ socket.on('opponentMove', (data) => {
 socket.on('playerFinished', (data) => {
   // Show notification with fade effect
   const status = data.won ? 'won' : 'finished';
-  const content = `
-    <div>🎯 ${data.playerName} ${status}!</div>
-    <div>Attempts: ${data.attempts}</div>
-    <div>Time: ${data.time}</div>
-    ${data.won ? '<div>🎉 They found the word!</div>' : ''}
-  `;
-  showNotificationWithFade(content);
+ 
   
   // Add chat message about player status
   if (data.won) {
-    addChatMessage('system', `${data.playerName} won in ${data.attempts} attempts at ${data.time}!`);
+    addChatMessage('system', `${data.playerName} won in ${data.attempts -1 } attempts at ${data.time}!`);
   } else {
     addChatMessage('system', `${data.playerName} used all attempts and did not get the word`);
   }
@@ -526,10 +528,8 @@ socket.on('gameFinished', (data) => {
   
   let message = '';
   if (data.won) {
-    message = `🎉 You won! Completed in ${data.attempts} attempts in ${data.time}`;
-  } else {
-    message = `You finished! Used ${data.attempts} attempts in ${data.time}`;
-  }
+    message = `🎉 You won! Completed in ${data.attempts -1 } attempts in ${data.time}`;
+  } 
   
   if (data.waitingForOpponent) {
     message += '\n⏳ Waiting for your opponent to finish...';
@@ -565,8 +565,8 @@ socket.on('gameComplete', (data) => {
     <p>${message}</p>
     <div style="margin-top: 15px;">
       <div><strong>Final Results:</strong></div>
-      <div>Player 1: ${player1Data.won ? '✅' : '❌'} ${player1Data.attempts} attempts in ${player1Data.time}</div>
-      <div>Player 2: ${player2Data.won ? '✅' : '❌'} ${player2Data.attempts} attempts in ${player2Data.time}</div>
+      <div>Player 1:  ${player1Data.attempts -1 } attempts in ${player1Data.time}</div>
+      <div>Player 2:  ${player2Data.attempts -1  } attempts in ${player2Data.time}</div>
     </div>
     <p style="margin-top: 15px;">The word was: <strong>${data.secretWord}</strong></p>
   `;
@@ -599,6 +599,11 @@ function setupChatSystem() {
   const chatInput = document.getElementById('chat-input');
   const chatSend = document.getElementById('chat-send');
   
+  // Remove any existing event listeners to prevent duplicates
+  chatToggleBtn.removeEventListener('click', toggleChat);
+  chatCloseBtn.removeEventListener('click', closeChat);
+  chatSend.removeEventListener('click', sendChatMessage);
+  
   // Toggle chat on button click
   chatToggleBtn.addEventListener('click', toggleChat);
   
@@ -608,16 +613,21 @@ function setupChatSystem() {
   // Send message on button click
   chatSend.addEventListener('click', sendChatMessage);
   
-  // Send message on Enter key
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      sendChatMessage();
-    }
-  });
+  // Send message on Enter key - remove existing first
+  chatInput.removeEventListener('keypress', handleEnterKey);
+  chatInput.addEventListener('keypress', handleEnterKey);
   
-  // Handle typing indicator
+  // Handle typing indicator - remove existing first
+  chatInput.removeEventListener('input', handleTyping);
+  chatInput.removeEventListener('blur', stopTyping);
   chatInput.addEventListener('input', handleTyping);
   chatInput.addEventListener('blur', stopTyping);
+}
+
+function handleEnterKey(e) {
+  if (e.key === 'Enter') {
+    sendChatMessage();
+  }
 }
 
 function toggleChat() {
@@ -640,6 +650,9 @@ function openChat() {
   
   state.chatOpen = true;
   pauseGame();
+  
+  // Hide chat notification when opening chat
+  hideChatNotification();
   
   // Focus on input
   document.getElementById('chat-input').focus();
@@ -706,12 +719,17 @@ function sendChatMessage() {
   const input = document.getElementById('chat-input');
   const message = input.value.trim();
   
+  console.log('Sending chat message:', message, 'Room ID:', state.roomId);
+  
   if (message && state.roomId) {
     socket.emit('chatMessage', {
       roomId: state.roomId,
       message: message
     });
     input.value = '';
+    console.log('Chat message sent successfully');
+  } else {
+    console.log('Cannot send message - missing message or roomId:', { message, roomId: state.roomId });
   }
 }
 
@@ -728,6 +746,22 @@ function addChatMessage(type, content, username = null) {
   
   messagesContainer.appendChild(messageDiv);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  
+  // Show chat notification if chat is closed and it's not a system message during game start
+  if (!state.chatOpen && !(type === 'system' && content === 'Game started! Good luck!')) {
+    showChatNotification();
+  }
+}
+
+// Chat notification functionality
+function showChatNotification() {
+  const notification = document.getElementById('chat-notification');
+  notification.classList.remove('hidden');
+}
+
+function hideChatNotification() {
+  const notification = document.getElementById('chat-notification');
+  notification.classList.add('hidden');
 }
 
 // Notification with fade effect

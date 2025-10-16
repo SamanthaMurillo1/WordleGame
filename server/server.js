@@ -36,7 +36,7 @@ function makeid(length) {
 }
 
 // Dictionary for multiplayer games (using a smaller set for testing)
-const multiplayerDictionary = ["apple", "grape", "berry", "mango", "peach", "lemon", "melon", "cherry", "plum", "guava"];
+const multiplayerDictionary = ["apple", "grape", "berry", "mango", "peach", "lemon", "melon", "guava"];
 
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
@@ -96,7 +96,8 @@ io.on('connection', (socket) => {
             
             // Notify both players that the game can start
             io.to(roomId).emit("playersConnected", {
-                secretWord: rooms[roomId].secretWord
+                secretWord: rooms[roomId].secretWord,
+                roomId: roomId
             });
             
             // Start countdown timer
