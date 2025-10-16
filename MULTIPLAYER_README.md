@@ -2,21 +2,43 @@
 
 ## Quick Start
 
-1. **Install dependencies and setup:**
-   ```bash
-   ./setup.sh
-   ```
-
-2. **Start the server:**
+1. **Start the server:**
    ```bash
    cd server
    npm run dev
    ```
 
-3. **Open your browser to:**
+2. **Open your browser to:**
    ```
    http://localhost:3000
    ```
+this is a wordle clone from a youtube video to which i added the feature of a multiplayer game 
+Wordlist taken from charlesreid1.
+
+### Backend :
+Node.js - JavaScript runtime environment
+Express.js - Web application framework for Node.js
+Socket.IO - Real-time bidirectional event-based communication library
+HTTP - Built-in Node.js HTTP module for creating the server
+Port - 3000
+
+### Frontend :
+HTML/CSS/JavaScript - Static files being served from the client directory
+Socket.IO Client - For real-time communication with the server
+Architecture
+Real-time multiplayer - Using WebSocket connections via Socket.IO
+Room-based system - Players join game rooms with unique IDs
+Static file serving - Express serves the frontend files
+In-memory storage - Game state stored in a rooms object (no database)
+
+### Key Features Implemented
+Real-time multiplayer Wordle game
+Room creation and joining
+Live game state synchronization
+Chat functionality with typing indicators
+Game pause/resume functionality
+Player disconnect handling
+Countdown timer for game start
 
 ## How to Play Multiplayer
 
@@ -32,25 +54,10 @@
 3. Click "Join Game"
 4. Wait for the countdown to start!
 
-## Features
-
-- **Real-time multiplayer**: Both players see each other's progress
-- **Game codes**: Easy 6-character codes for joining games
-- **Countdown timer**: 3-second countdown before games start
-- **Live opponent tracking**: See which row your opponent is on
-- **Automatic game completion**: Server handles win/loss detection
-
-## Technical Details
-
-- **Server**: Node.js + Express + Socket.io
-- **Client**: Your existing Wordle game with Socket.io integration
-- **Port**: 3000 (configurable via PORT environment variable)
-- **Real-time communication**: WebSocket connections via Socket.io
-
 ## File Structure
 
 ```
-SoloAndMultiplayer/
+WordleGameMultiplayerAdded/
 ├── server/
 │   ├── package.json
 │   └── server.js
