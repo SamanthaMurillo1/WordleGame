@@ -50,7 +50,7 @@
 ## File Structure
 
 ```
-wordle-speedrun/
+SoloAndMultiplayer/
 ├── server/
 │   ├── package.json
 │   └── server.js
