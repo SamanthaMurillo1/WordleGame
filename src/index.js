@@ -587,8 +587,8 @@ socket.on('gameError', (data) => {
 
 // Secret word display for testing
 function displaySecretWord() {
-  const display = document.getElementById('secret-word-display');
-  display.textContent = `Secret: ${state.secret.toUpperCase()}`;
+  //const display = document.getElementById('secret-word-display');
+  //display.textContent = `Secret: ${state.secret.toUpperCase()}`;
 }
 
 // Chat system functions
