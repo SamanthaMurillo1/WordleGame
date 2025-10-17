@@ -12,33 +12,44 @@
    ```
    http://localhost:3000
    ```
-this is a wordle clone from a youtube video to which i added the feature of a multiplayer game 
+this is a wordle clone from a youtube video (https://www.youtube.com/watch?v=oKM2nQdQkIU) to which I added the feature of a multiplayer game 
 Wordlist taken from charlesreid1.
 
-### Backend :
-Node.js - JavaScript runtime environment
-Express.js - Web application framework for Node.js
-Socket.IO - Real-time bidirectional event-based communication library
-HTTP - Built-in Node.js HTTP module for creating the server
-Port - 3000
+## ⚙️ Tech Stack
 
-### Frontend :
-HTML/CSS/JavaScript - Static files being served from the client directory
-Socket.IO Client - For real-time communication with the server
-Architecture
-Real-time multiplayer - Using WebSocket connections via Socket.IO
-Room-based system - Players join game rooms with unique IDs
-Static file serving - Express serves the frontend files
-In-memory storage - Game state stored in a rooms object (no database)
+### **Backend**
+- **Node.js** – JavaScript runtime environment  
+- **Express.js** – Web application framework for Node.js  
+- **Socket.IO** – Real-time bidirectional event-based communication library  
+- **HTTP** – Built-in Node.js module for creating the server  
+- **Port:** `3000`
 
-### Key Features Implemented
-Real-time multiplayer Wordle game
-Room creation and joining
-Live game state synchronization
-Chat functionality with typing indicators
-Game pause/resume functionality
-Player disconnect handling
-Countdown timer for game start
+### **Frontend**
+- **HTML / CSS / JavaScript** – Static client-side files  
+- **Socket.IO Client** – Enables real-time communication with the backend
+
+---
+
+## 🏗️ Architecture Overview
+
+- **Real-time Multiplayer:** Powered by WebSocket connections through Socket.IO  
+- **Room-Based System:** Players can join unique game rooms    
+- **In-Memory Storage:** Game state stored in a `rooms` object (no external database)
+
+---
+
+## 🎮 Key Features
+
+✅ **Real-Time Multiplayer Wordle Gameplay**  
+✅ **Room Creation & Joining** — Each game has a unique room ID  
+✅ **Live Game State Synchronization** — Updates instantly across all players  
+✅ **Chat Functionality** — With typing indicators for live interaction  
+✅ **Game Pause & Resume** — Temporarily halt and continue sessions  
+✅ **Player Disconnect Handling** — Keeps the game stable when users leave  
+✅ **Countdown Timer** — For game start and turn management
+
+---
+
 
 ## How to Play Multiplayer
 
